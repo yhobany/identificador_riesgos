@@ -17,18 +17,14 @@ class _TareaFormState extends State<TareaForm> {
   String ordenTrabajo = '';
   String ubicacion = '';
 
-  // --- LÓGICA DE FECHA/HORA MODIFICADA ---
   late DateTime fechaInicio;
   late DateTime fechaFin;
   late TimeOfDay horaInicio;
   late TimeOfDay horaFin;
-  // --- FIN DE MODIFICACIÓN ---
 
   bool existeAST = false; // Control para validar si hay AST
 
-  // --- NUEVA VARIABLE DE ESTADO PARA PERMISOS ---
   bool _requierePermisosEspeciales = false;
-  // --- FIN DE NUEVA VARIABLE ---
 
   Map<String, bool> permisosEspeciales = {
     'Trabajo en alturas': false,
@@ -54,29 +50,19 @@ class _TareaFormState extends State<TareaForm> {
         ordenTrabajo = _data.ordenTrabajo;
         ubicacion = _data.ubicacion;
 
-        // --- LÓGICA DE FECHA/HORA MODIFICADA ---
-        // Las fechas siempre son HOY y no son nulas
         fechaInicio = DateTime(now.year, now.month, now.day);
         fechaFin = DateTime(now.year, now.month, now.day);
-        // Las horas se inicializan o se toman de los datos
         horaInicio = _data.horaInicio ?? TimeOfDay.now();
         horaFin = _data.horaFin ?? TimeOfDay.now();
-        // --- FIN DE MODIFICACIÓN ---
 
         permisosEspeciales = Map.from(_data.permisosEspeciales);
         existeAST = _data.existeAST;
 
-        // --- LÓGICA DE INICIALIZACIÓN DE PERMISOS ---
-        // Si algún permiso especial ya venía como 'true', activa el switch
         _requierePermisosEspeciales = permisosEspeciales.values.any((v) => v);
-        // --- FIN DE LÓGICA ---
       });
       _initialized = true;
     }
   }
-
-  // --- FUNCIONES DE FECHA ELIMINADAS ---
-  // _selectFechaInicio() y _selectFechaFin() han sido eliminadas.
 
   Future<void> _selectHoraInicio() async {
     final TimeOfDay? picked = await showTimePicker(
@@ -94,7 +80,6 @@ class _TareaFormState extends State<TareaForm> {
     if (picked != null) setState(() => horaFin = picked);
   }
 
-  // --- NUEVOS FORMATEADORES DE FECHA/HORA ---
   String formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year} (Fecha Actual)';
   }
@@ -102,43 +87,36 @@ class _TareaFormState extends State<TareaForm> {
   String formatTime(TimeOfDay time) {
     return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
   }
-  // --- FIN DE NUEVOS FORMATEADORES ---
 
-  // --- NUEVA FUNCIÓN PARA EL SWITCH DE PERMISOS ---
   void _setPermisosEspeciales(bool value) {
     setState(() {
       _requierePermisosEspeciales = value;
       if (!value) {
-        // Si el switch se apaga (NO), resetea todos los permisos a false
         permisosEspeciales.updateAll((key, _) => false);
       }
     });
   }
-  // --- FIN DE NUEVA FUNCIÓN ---
 
 
   void _continuar() {
     if (!_formKey.currentState!.validate()) {
-      return; // Si el formulario no es válido, no hacer nada
+      return;
     }
 
-    // --- NUEVA VALIDACIÓN DE 12 HORAS ---
     final dtInicio = DateTime(fechaInicio.year, fechaInicio.month,
         fechaInicio.day, horaInicio.hour, horaInicio.minute);
     final dtFin = DateTime(fechaFin.year, fechaFin.month, fechaFin.day,
         horaFin.hour, horaFin.minute);
 
-    // 1. Validar que la hora de fin sea posterior a la de inicio
     if (dtFin.isBefore(dtInicio) || dtFin.isAtSameMomentAs(dtInicio)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(
                 'Error: La hora de fin debe ser posterior a la hora de inicio')),
       );
-      return; // Detener
+      return;
     }
 
-    // 2. Validar la regla de 12 horas (720 minutos)
     final duration = dtFin.difference(dtInicio);
     if (duration.inMinutes > (12 * 60)) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -146,20 +124,16 @@ class _TareaFormState extends State<TareaForm> {
             content: Text(
                 'Error: La vigencia del permiso no puede superar las 12 horas')),
       );
-      return; // Detener
+      return;
     }
-    // --- FIN DE NUEVA VALIDACIÓN ---
 
-
-    // --- Validación de AST (existente) ---
     if (existeAST && codigoAST.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Debe ingresar el código del AST')),
       );
-      return; // Detener
+      return;
     }
 
-    // Si todas las validaciones pasan, guardar y navegar
     _data.descripcion = descripcion;
     _data.codigoAST = codigoAST;
     _data.ordenTrabajo = ordenTrabajo;
@@ -171,7 +145,6 @@ class _TareaFormState extends State<TareaForm> {
     _data.permisosEspeciales = permisosEspeciales;
     _data.existeAST = existeAST;
 
-    // Navegar a la siguiente pantalla (la lógica de flujo ya está en TareaForm)
     Navigator.pushNamed(context, '/peligros', arguments: _data);
   }
 
@@ -180,8 +153,11 @@ class _TareaFormState extends State<TareaForm> {
     debugPrint('Building TareaForm at ${DateTime.now()}');
     return Scaffold(
       appBar: AppBar(title: Text('Datos de la Tarea')),
+
+      // --- 'body' CON PADDING INFERIOR CORREGIDO ---
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        // Padding modificado para dejar espacio al botón fijo
+        padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 80.0),
         child: Form(
           key: _formKey,
           child: Column(
@@ -251,7 +227,6 @@ class _TareaFormState extends State<TareaForm> {
               Text('Fecha y hora de inicio',
                   style: TextStyle(fontWeight: FontWeight.bold)),
 
-              // --- UI DE FECHA/HORA MODIFICADA ---
               Text('Fecha: ${formatDate(fechaInicio)} (No editable)'),
               Row(
                 children: [
@@ -260,7 +235,6 @@ class _TareaFormState extends State<TareaForm> {
                   ElevatedButton(
                       onPressed: _selectHoraInicio,
                       child: Text('Seleccionar hora')),
-                  // Botón de fecha eliminado
                 ],
               ),
 
@@ -275,21 +249,17 @@ class _TareaFormState extends State<TareaForm> {
                   ElevatedButton(
                       onPressed: _selectHoraFin,
                       child: Text('Seleccionar hora')),
-                  // Botón de fecha eliminado
                 ],
               ),
-              // --- FIN DE UI MODIFICADA ---
 
               SizedBox(height: 16),
 
-              // --- UI DE PERMISOS MODIFICADA ---
               SwitchListTile(
                 title: Text('¿Se requieren permisos especiales?', style: TextStyle(fontWeight: FontWeight.bold)),
                 value: _requierePermisosEspeciales,
                 onChanged: _setPermisosEspeciales,
               ),
 
-              // Los checkboxes solo son visibles si el switch está en "Sí"
               Visibility(
                 visible: _requierePermisosEspeciales,
                 child: Column(
@@ -306,17 +276,31 @@ class _TareaFormState extends State<TareaForm> {
                   }).toList(),
                 ),
               ),
-              // --- FIN DE UI MODIFICADA ---
 
-              SizedBox(height: 16),
-              ElevatedButton(
-                child: Text('Continuar con identificación de peligros'),
-                onPressed: _continuar,
-              ),
+              // --- ¡BOTÓN ELIMINADO DE AQUÍ! ---
+              // SizedBox(height: 16),
+              // ElevatedButton(...)
+              // --- FIN DE LA ELIMINACIÓN ---
             ],
           ),
         ),
       ),
+      // --- FIN DEL CAMBIO ---
+
+      // --- ¡BOTÓN AÑADIDO A persistentFooterButtons! ---
+      persistentFooterButtons: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: SizedBox(
+            width: double.infinity, // Hace que el botón ocupe todo el ancho
+            child: ElevatedButton(
+              child: Text('Continuar con identificación de peligros'),
+              onPressed: _continuar,
+            ),
+          ),
+        ),
+      ],
+      // --- FIN DE LA ADICIÓN ---
     );
   }
 }

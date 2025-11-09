@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../constants.dart';
-import '../models/permiso_data.dart';
+// Importaciones corregidas
+import 'package:identificador_riesgos/constants.dart';
+import 'package:identificador_riesgos/models/permiso_data.dart';
 
 class PasoAPasoScreen extends StatefulWidget {
   @override
@@ -50,67 +51,43 @@ class _PasoAPasoScreenState extends State<PasoAPasoScreen> {
           'medidas': List.from(_medidasSeleccionadas),
         });
         _data.pasos = _pasos;
+
         _peligrosSeleccionados = [];
         _medidasSeleccionadas = [];
-        _pasoTareaController.clear(); // Limpia el campo inmediatamente
+        _pasoTareaController.clear();
       });
-      _formKey.currentState!.reset(); // Reinicia el formulario
-      _mostrarDialogoAgregarPaso();
+      _formKey.currentState!.reset();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Paso guardado. Añada el siguiente o finalice.')),
+      );
     } else if (_data.existeAST) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('No se pueden agregar pasos con AST existente')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Completa todos los campos requeridos')),
+        SnackBar(content: Text('Complete todos los campos requeridos')),
       );
     }
   }
 
-  void _mostrarDialogoAgregarPaso() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('¿Agregar otro paso?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('No'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text('Sí'),
-          ),
-        ],
-      ),
-    ).then((addAnother) {
-      if (addAnother == null || !addAnother) {
-        _finalizarPasos();
-      } else {
-        // Reinicio completo del formulario y limpieza explícita
-        setState(() {
-          _peligrosSeleccionados = [];
-          _medidasSeleccionadas = [];
-          _pasoTareaController.clear(); // Limpia el campo
-        });
-        _formKey.currentState!
-            .reset(); // Reinicia todos los campos del formulario
-        // Forzar renderizado inmediato
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _pasoTareaController.text = ''; // Asegura que el texto esté vacío
-          setState(() {});
-        });
-      }
-    });
-  }
-
   void _finalizarPasos() {
-    _data.pasos = _pasos;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Pasos guardados correctamente')),
-    );
-    Navigator.pushNamed(context, '/firmas',
-        arguments: _data); // Navegación a '/firmas'
+    if (_pasos.isNotEmpty) {
+      _data.pasos = _pasos;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Pasos guardados, yendo a vista previa...')),
+      );
+
+      // --- ¡NAVEGACIÓN CORREGIDA! ---
+      // Apunta a la nueva pantalla de vista previa
+      Navigator.pushNamed(context, '/ver_reporte', arguments: _data);
+      // --- FIN DE CORRECCIÓN ---
+
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Debe guardar al menos un paso para finalizar')),
+      );
+    }
   }
 
   Widget buildCheckboxList(
@@ -124,14 +101,14 @@ class _PasoAPasoScreenState extends State<PasoAPasoScreen> {
           onChanged: _data.existeAST
               ? null
               : (bool? value) {
-                  setState(() {
-                    if (value == true) {
-                      selectedItems.add(item);
-                    } else {
-                      selectedItems.remove(item);
-                    }
-                  });
-                },
+            setState(() {
+              if (value == true) {
+                selectedItems.add(item);
+              } else {
+                selectedItems.remove(item);
+              }
+            });
+          },
         );
       }).toList(),
     );
@@ -143,8 +120,11 @@ class _PasoAPasoScreenState extends State<PasoAPasoScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text('Paso a Paso')),
+
+      // --- 'body' CON PADDING INFERIOR CORREGIDO ---
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        // Padding aumentado a 150.0 para dar espacio a los dos botones
+        padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 150.0),
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
@@ -170,11 +150,11 @@ class _PasoAPasoScreenState extends State<PasoAPasoScreen> {
                         enabled: !isDisabled,
                         controller: _pasoTareaController,
                         decoration:
-                            InputDecoration(labelText: 'Paso de la Tarea'),
+                        InputDecoration(labelText: 'Paso de la Tarea'),
                         validator: (value) =>
-                            !isDisabled && (value == null || value.isEmpty)
-                                ? 'Campo requerido'
-                                : null,
+                        !isDisabled && (value == null || value.isEmpty)
+                            ? 'Campo requerido'
+                            : null,
                       ),
                       SizedBox(height: 16),
                       buildCheckboxList(
@@ -186,16 +166,13 @@ class _PasoAPasoScreenState extends State<PasoAPasoScreen> {
                         buildCheckboxList(
                             _peligrosSeleccionados
                                 .expand((categoria) =>
-                                    medidasPorCategoria[categoria]!)
+                            medidasPorCategoria[categoria]!)
                                 .toSet()
                                 .toList(),
                             _medidasSeleccionadas,
                             'Seleccione las medidas de prevención o control:'),
-                      SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: isDisabled ? null : _guardarPaso,
-                        child: Text('Guardar Paso'),
-                      ),
+
+                      // --- ¡BOTÓN ELIMINADO DE AQUÍ! ---
                     ],
                   ),
                 SizedBox(height: 16),
@@ -238,6 +215,42 @@ class _PasoAPasoScreenState extends State<PasoAPasoScreen> {
           ),
         ),
       ),
+      // --- FIN DEL CAMBIO ---
+
+      // --- ¡BOTONES AÑADIDOS A persistentFooterButtons! ---
+      persistentFooterButtons: [
+        if (!isDisabled)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _guardarPaso,
+                    child: Text('Guardar Paso'),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade700
+                    ),
+                  ),
+                ),
+                SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _finalizarPasos,
+                    child: Text('Finalizar e Ir a Vista Previa'), // Texto actualizado
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.shade700
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+      // --- FIN DE LA ADICIÓN ---
     );
   }
 }

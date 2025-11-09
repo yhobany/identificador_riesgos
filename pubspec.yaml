@@ -1,24 +1,27 @@
 name: identificador_riesgos
 description: "Verison 1.0"
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: 'none'
 
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.9.2
+  # Ajustado para ser compatible con tu SDK 3.5.4
+  sdk: '>=3.5.4 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-
-  # --- NUEVAS DEPENDENCIAS (AÑADIDAS POR TU PROYECTO) ---
   signature: ^5.0.0
   shared_preferences: ^2.3.0
   pdf: ^3.11.0
-  share_plus: ^10.1.0
-  # --- FIN DE NUEVAS DEPENDENCIAS ---
+
+  # --- DEPENDENCIAS QUE FALTABAN AÑADIDAS ---
+  printing: ^5.12.0      # Para la vista previa del PDF
+  file_saver: ^0.3.1       # Para guardar el PDF (versión compatible)
+  share_plus: ^10.1.0      # (Lo dejamos por si se usa en la rama web)
+  # --- FIN DE LA ADICIÓN ---
 
 
 dev_dependencies:
@@ -27,21 +30,10 @@ dev_dependencies:
 
   flutter_lints: ^5.0.0
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter packages.
 flutter:
 
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
-
-  # --- NUEVA SECCIÓN DE FUENTES (AÑADIDA POR TU PROYECTO) ---
-  # Esta sección registra tus fuentes Roboto de la carpeta 'assets/fonts/'
   fonts:
     - family: Roboto
       fonts:
@@ -50,4 +42,3 @@ flutter:
           weight: 700
         - asset: assets/fonts/Roboto-Medium.ttf
           weight: 500
-  # --- FIN DE LA SECCIÓN DE FUENTES ---
