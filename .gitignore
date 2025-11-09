@@ -30,7 +30,13 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
+
+# --- LÍNEA MODIFICADA ---
+#/build/
+
+# --- FIN DE MODIFICACIÓN ---
+
+
 /coverage/
 
 # Symbolication related
